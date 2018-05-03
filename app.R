@@ -486,7 +486,7 @@ server <- function(input, output) {
       warnings[length(warnings) + 1] <- "Two samples in a row have a positive residual more than 2 * RMSE"
     } 
     if(high_neg_2) {
-      warnings[length(warnings) + 1] <- "Two samples in a row have a negative residual mroe than 2 * RMSE"
+      warnings[length(warnings) + 1] <- "Two samples in a row have a negative residual more than 2 * RMSE"
     }
     if(high_pos_3) {
       warnings[length(warnings) + 1] <- "Three samples in a row have a positive residual more than 2 * RMSE"
@@ -499,7 +499,6 @@ server <- function(input, output) {
     }
     
     warnings
-    
     
   })
   
