@@ -11,6 +11,8 @@ library(shiny)
 library(lubridate)
 library(ggplot2)
 library(dplyr)
+library(rmarkdown)
+library(knitr)
 source("tools.R")
 options(shiny.maxRequestSize=30*1024^2) 
 
@@ -58,6 +60,7 @@ ui <- fluidPage(
           )
        ),
        tabPanel("Validation",
+          downloadButton("download_report", "Download Word Report"),
           uiOutput("warnings"),
           uiOutput("ts_plot_output"),
           uiOutput("ts_plot_output_zoomed"),
@@ -679,6 +682,24 @@ server <- function(input, output) {
     text(x = 1:length(unique(data$Season)), y = y_coord, labels = n)
     
   })
+  
+  output$download_report <- downloadHandler(
+    filename = function() {
+      paste(input$val_mod_column, "_model_validation.docx")
+    },
+    content = function(file) {
+      
+      # src <- normalizePath("report.Rmd")
+      # owd <- setwd(tempdir())
+      # on.exit(setwd(owd))
+      # file.copy(src, "report.Rmd")
+      
+      out <- render("report.Rmd", word_document())
+      file.rename(out, file)
+      
+    }
+    
+  )
 
 }
 

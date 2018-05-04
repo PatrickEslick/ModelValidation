@@ -1,0 +1,131 @@
+---
+title: "Model Validation"
+output: 
+  word_document
+---
+
+## Warnings
+
+``` {r, echo=FALSE, message = FALSE, comment = ""}
+
+cat(paste(text_warnings(), collapse = "\n"))
+
+```
+
+## Prediction time series
+
+```{r, echo=FALSE, fig.height=4, fig.width=8, message=FALSE, warning=FALSE, comment=""}
+
+if(input$include_cont) {
+
+  #Get the continuous data for the plot
+  data <- cont_data()
+  if(!is.null(ranges$x)) {
+    data <- data[data$datetime > ranges$x[1] & data$datetime < ranges$x[2], ]
+  }
+
+  #Get the points, if any for the plot
+  points <- val_points_data()
+  if(!is.null(ranges$x)) {
+    points <- points[points$datetime > ranges$x[1] & points$datetime < ranges$x[2], ]
+  }
+  points <- points %>%
+    mutate(High_Residual = abs(Sigma_Distance) > 2) %>%
+    select(datetime, Measured, High_Residual) %>%
+    na.omit()
+
+  p <- ggplot(data = data) +
+    geom_ribbon(aes(x=datetime, ymin=pDown3, ymax=pUp3), fill="#BFDBFF") +
+    geom_ribbon(aes(x=datetime, ymin=pDown2, ymax=pUp2), fill="#CCE1FF") +
+    geom_ribbon(aes(x=datetime, ymin=pDown1, ymax=pUp1), fill="#F0F4FC") +
+    geom_line(aes(x = datetime, y = Predicted), color="steelblue3") +
+    geom_point(data=points, aes(x=datetime, y=Measured, color=High_Residual), size=3) +
+    scale_color_manual(values = c("black", "orangered1")) +
+    scale_x_datetime() +
+    xlab("Datetime") + ylab("Modeled Value") +
+    theme(plot.title = element_text(hjust = 0.5), axis.text = element_text(size=11, color="black"),
+          axis.title = element_text(size=11, face="bold"))
+  p
+} else {
+  
+  cat("No time series provided for this validation")
+  
+}
+
+```
+
+## Residual scatter plots
+
+```{r, echo=FALSE, fig.height=4, fig.width=7.5, message=FALSE, warning=FALSE, comment=""}
+
+plotby <- c("datetime", "Predicted", exp_var_names())
+data <- val_points_data()
+
+for(x_var in plotby) {
+  p <- ggplot(data = data) +
+    geom_point(aes_string(x = x_var, y = "Residual"), color="blue") +
+    geom_hline(yintercept=0, color="black") +
+    xlab(x_var) + ylab("Residual") + ggtitle(paste("Residual by", x_var)) +
+    theme(plot.title = element_text(hjust = 0.5), axis.text = element_text(size=11, color = "black"),
+          axis.title = element_text(size=11, color = "black"))
+  print(p)
+}
+
+```
+
+## Boxplots
+
+```{r, echo=FALSE, fig.height=5, fig.width=7, message=FALSE, warning=FALSE, comment=""}
+
+    data <- val_points_data()
+    par(cex.lab = 0.9, cex.axis = 0.9, cex.title = 0.9)    
+
+    #Find the annotation text for number of smaples for each year
+    y_coord <- vector()
+    n <- vector()
+    range <- max(data$Residual) - min(data$Residual)
+    for(i in unique(data$Year)[order(unique(data$Year))]) {
+      y_coord[length(y_coord) + 1] <- max(data[data$Year==i,"Residual"]) + range * 0.05
+      n[length(n) + 1] <- nrow(data[data$Year==i,])
+    }
+    
+    #Find the y range to expand it a bit to make room for the annotation
+    y_upper <- max(data$Residual) + range * 0.1
+    y_lower <- min(data$Residual) - range * 0.1
+    
+    boxplot(Residual ~ Year, data = data, boxwex=0.3, las = 1, ylim=c(y_lower, y_upper),
+            main = "Residual by year", xlab="Year", ylab = "Residual")
+    abline(h = 0, col="blue")
+    text(x = 1:length(unique(data$Year)), y = y_coord, labels = n, cex = 0.7)
+    
+        #Get the annotation text for the count of each season
+    y_coord <- vector()
+    n <- vector()
+    range <- max(data$Residual) - min(data$Residual)
+    for(i in levels(data$Season)) {
+      y_coord[length(y_coord) + 1] <- max(data[data$Season == i, "Residual"]) + range * 0.05
+      n[length(n) + 1] <- nrow(data[data$Season == i,])
+    }
+    
+    #Find the y range to expand it a bit to make room for the annotation
+    y_upper <- max(data$Residual) + range * 0.1
+    y_lower <- min(data$Residual) - range * 0.1
+    
+    boxplot(Residual ~ Season, data=data, boxwex = 0.3, las=1, ylim = c(y_lower, y_upper),
+            main = "Residual by season", xlab = "Season", ylab="Residual")
+    abline(h = 0, col="blue")
+    text(x = 1:length(unique(data$Season)), y = y_coord, labels = n, cex = 0.7)
+
+
+```
+
+## Data table
+
+```{r, echo=FALSE, comment = "", message=FALSE, warning = FALSE}
+
+val_points_data() %>% 
+  select(datetime, Measured, Predicted, Residual, Sigma_Distance) %>%
+  kable()
+
+```
+
