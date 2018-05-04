@@ -60,6 +60,7 @@ ui <- fluidPage(
           )
        ),
        tabPanel("Validation",
+          downloadButton("download_data", "Download Data Table"),
           downloadButton("download_report", "Download Word Report"),
           uiOutput("warnings"),
           uiOutput("ts_plot_output"),
@@ -699,6 +700,16 @@ server <- function(input, output) {
       
     }
     
+  )
+  
+  output$download_data <- downloadHandler(
+    filename = function() {
+      paste(input$val_mod_column, "_validation_data.csv")
+    },
+    
+    content = function(file) {
+      write.csv(val_points_data(), file=file, row.names=FALSE)
+    }
   )
 
 }
