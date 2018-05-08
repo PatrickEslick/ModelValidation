@@ -399,7 +399,8 @@ server <- function(input, output) {
     data <- val_points_data() %>%
       mutate(High_Neg_Residual = as.numeric(Sigma_Distance <= -2),
              High_Pos_Residual = as.numeric(Sigma_Distance >= 2),
-             Very_High_Residual = as.numeric(abs(Sigma_Distance) >= 3))
+             Very_High_Residual = as.numeric(abs(Sigma_Distance) >= 3)) %>%
+      filter(!is.na(Predicted))
     print(data)
     
     #Check for high residuals
@@ -525,8 +526,11 @@ server <- function(input, output) {
     if(!(input$include_cont))
       return(NULL)
 
-    data <- cont_data()
-    points <- val_points_data() 
+    data <- cont_data() %>% 
+      select(datetime, Predicted, pUp1, pUp2, pUp3, pDown1, pDown2, pDown3) %>%
+      na.omit()
+    print(tail(data))
+    points <- val_points_data()
     points <- points %>%
       mutate(High_Residual = abs(Sigma_Distance) > 2) %>%
       select(datetime, Measured, High_Residual) %>%
@@ -573,7 +577,9 @@ server <- function(input, output) {
       return(NULL)
 
     #Get the continuous data for the plot
-    data <- cont_data()
+    data <- cont_data() %>% 
+      select(datetime, Predicted, pUp1, pUp2, pUp3, pDown1, pDown2, pDown3) %>%
+      na.omit()
     if(!is.null(ranges$x)) {
       data <- data[data$datetime > ranges$x[1] & data$datetime < ranges$x[2], ]
     }
@@ -643,15 +649,15 @@ server <- function(input, output) {
     #Find the annotation text for number of smaples for each year
     y_coord <- vector()
     n <- vector()
-    range <- max(data$Residual) - min(data$Residual)
+    range <- max(data$Residual, na.rm=TRUE) - min(data$Residual, na.rm=TRUE)
     for(i in unique(data$Year)[order(unique(data$Year))]) {
-      y_coord[length(y_coord) + 1] <- max(data[data$Year==i,"Residual"]) + range * 0.05
+      y_coord[length(y_coord) + 1] <- max(data[data$Year==i,"Residual"], na.rm = TRUE) + range * 0.05
       n[length(n) + 1] <- nrow(data[data$Year==i,])
     }
     
     #Find the y range to expand it a bit to make room for the annotation
-    y_upper <- max(data$Residual) + range * 0.1
-    y_lower <- min(data$Residual) - range * 0.1
+    y_upper <- max(data$Residual, na.rm = TRUE) + range * 0.1
+    y_lower <- min(data$Residual, na.rm = TRUE) - range * 0.1
     
     boxplot(Residual ~ Year, data = data, boxwex=0.3, las = 1, ylim=c(y_lower, y_upper),
             main = "Residual by year", xlab="Year", ylab = "Residual")
@@ -667,15 +673,15 @@ server <- function(input, output) {
     #Get the annotation text for the count of each season
     y_coord <- vector()
     n <- vector()
-    range <- max(data$Residual) - min(data$Residual)
+    range <- max(data$Residual, na.rm = TRUE) - min(data$Residual, na.rm = TRUE)
     for(i in levels(data$Season)) {
-      y_coord[length(y_coord) + 1] <- max(data[data$Season == i, "Residual"]) + range * 0.05
+      y_coord[length(y_coord) + 1] <- max(data[data$Season == i, "Residual"], na.rm = TRUE) + range * 0.05
       n[length(n) + 1] <- nrow(data[data$Season == i,])
     }
     
     #Find the y range to expand it a bit to make room for the annotation
-    y_upper <- max(data$Residual) + range * 0.1
-    y_lower <- min(data$Residual) - range * 0.1
+    y_upper <- max(data$Residual, na.rm = TRUE) + range * 0.1
+    y_lower <- min(data$Residual, na.rm = TRUE) - range * 0.1
     
     boxplot(Residual ~ Season, data=data, boxwex = 0.3, las=1, ylim = c(y_lower, y_upper),
             main = "Residual by season", xlab = "Season", ylab="Residual")
