@@ -696,10 +696,10 @@ server <- function(input, output) {
     },
     content = function(file) {
       
-      # src <- normalizePath("report.Rmd")
-      # owd <- setwd(tempdir())
-      # on.exit(setwd(owd))
-      # file.copy(src, "report.Rmd")
+      src <- normalizePath("report.Rmd")
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      file.copy(src, "report.Rmd")
       
       out <- render("report.Rmd", word_document())
       file.rename(out, file)
