@@ -19,7 +19,9 @@ cat(paste(text_warnings(), collapse = "\n"))
 if(input$include_cont) {
 
   #Get the continuous data for the plot
-  data <- cont_data()
+  data <- cont_data() %>% 
+    select(datetime, Predicted, pUp1, pUp2, pUp3, pDown1, pDown2, pDown3) %>%
+    na.omit()
   if(!is.null(ranges$x)) {
     data <- data[data$datetime > ranges$x[1] & data$datetime < ranges$x[2], ]
   }
