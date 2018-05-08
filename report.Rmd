@@ -85,15 +85,15 @@ for(x_var in plotby) {
     #Find the annotation text for number of smaples for each year
     y_coord <- vector()
     n <- vector()
-    range <- max(data$Residual) - min(data$Residual)
+    range <- max(data$Residual, na.rm=TRUE) - min(data$Residual, na.rm=TRUE)
     for(i in unique(data$Year)[order(unique(data$Year))]) {
-      y_coord[length(y_coord) + 1] <- max(data[data$Year==i,"Residual"]) + range * 0.05
+      y_coord[length(y_coord) + 1] <- max(data[data$Year==i,"Residual"], na.rm=TRUE) + range * 0.05
       n[length(n) + 1] <- nrow(data[data$Year==i,])
     }
     
     #Find the y range to expand it a bit to make room for the annotation
-    y_upper <- max(data$Residual) + range * 0.1
-    y_lower <- min(data$Residual) - range * 0.1
+    y_upper <- max(data$Residual, na.rm=TRUE) + range * 0.1
+    y_lower <- min(data$Residual, na.rm=TRUE) - range * 0.1
     
     boxplot(Residual ~ Year, data = data, boxwex=0.3, las = 1, ylim=c(y_lower, y_upper),
             main = "Residual by year", xlab="Year", ylab = "Residual")
@@ -103,15 +103,15 @@ for(x_var in plotby) {
         #Get the annotation text for the count of each season
     y_coord <- vector()
     n <- vector()
-    range <- max(data$Residual) - min(data$Residual)
+    range <- max(data$Residual, na.rm=TRUE) - min(data$Residual, na.rm=TRUE)
     for(i in levels(data$Season)) {
-      y_coord[length(y_coord) + 1] <- max(data[data$Season == i, "Residual"]) + range * 0.05
+      y_coord[length(y_coord) + 1] <- max(data[data$Season == i, "Residual"], na.rm=TRUE) + range * 0.05
       n[length(n) + 1] <- nrow(data[data$Season == i,])
     }
     
     #Find the y range to expand it a bit to make room for the annotation
-    y_upper <- max(data$Residual) + range * 0.1
-    y_lower <- min(data$Residual) - range * 0.1
+    y_upper <- max(data$Residual, na.rm=TRUE) + range * 0.1
+    y_lower <- min(data$Residual, na.rm=TRUE) - range * 0.1
     
     boxplot(Residual ~ Season, data=data, boxwex = 0.3, las=1, ylim = c(y_lower, y_upper),
             main = "Residual by season", xlab = "Season", ylab="Residual")
